@@ -1,93 +1,85 @@
-import todo from "../models/todo.js";
+import TodoList from "../models/todo.js";
 
 export const addTodo = async (req, res) => {
   try {
     const { title, description } = req.body;
-    const newEntry = new todo({
-      title,
-      description,
-    });
-    await newEntry.save();
-    res.status(201).json({
-      success: true,
-      data: newEntry,
-    });
-  } catch (error) {
-    console.log(error),
-      res.status(500).json({
-        success: false,
-        message: "Add Error Occured",
+    let list = await TodoList.findOne();
+
+    if (!list) {
+      const newList = new TodoList({
+        todos: [{ id: 1, title, description }],
       });
+      await newList.save();
+      return res.status(201).json({ success: true, data: newList });
+    }
+
+    const nextId = list.todos.length + 1;
+    list.todos.push({ id: nextId, title, description });
+    await list.save();
+
+    res.status(201).json({ success: true, data: list });
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({ success: false, message: "Add Error Occurred" });
   }
 };
 
 export const fetchTodo = async (req, res) => {
   try {
-    const todoData = await todo.find({}).sort({ timestamp: -1 });
-    res.status(200).json({
-      success: true,
-      data: todoData,
-    });
+    const list = await TodoList.findOne();
+    res.status(200).json({ success: true, data: list?.todos || [] });
   } catch (error) {
     console.log(error);
-    res.status(501).json({
-      success: false,
-      message: "Fetch Error Occured",
-    });
+    res.status(500).json({ success: false, message: "Fetch Error Occurred" });
   }
 };
+
 
 export const updateTodo = async (req, res) => {
   try {
     const { id } = req.params;
     const { title, description } = req.body;
+    const list = await TodoList.findOne();
 
-    let findTodo = await todo.findById(id);
+    if (!list)
+      return res.status(404).json({ success: false, message: "Todo list not found" });
 
-    if (!findTodo)
-      return res.status(404).json({
-        success: false,
-        message: "Edit Error Not Found",
-      });
+    const todo = list.todos.find((t) => t.id === parseInt(id));
 
-    (findTodo.title = title || findTodo.title),
-      (findTodo.description = description || findTodo.description),
-      await findTodo.save();
+    if (!todo)
+      return res.status(404).json({ success: false, message: "Todo not found" });
 
-    res.status(200).json({
-      success: true,
-      data: findTodo,
-    });
+    if (title) todo.title = title;
+    if (description) todo.description = description;
+
+    await list.save();
+    res.status(200).json({ success: true, data: todo });
   } catch (error) {
     console.log(error);
-    res.status(501).json({
-      success: false,
-      message: "Update Error Occured",
-    });
+    res.status(500).json({ success: false, message: "Update Error Occurred" });
   }
 };
+
 
 export const deleteTodo = async (req, res) => {
   try {
     const { id } = req.params;
+    const list = await TodoList.findOne();
 
-    let deleteTodo = await todo.findByIdAndDelete(id);
+    if (!list)
+      return res.status(404).json({ success: false, message: "Todo list not found" });
 
-    if (!deleteTodo)
-      return res.status(404).json({
-        success: false,
-        message: "Delete Record Not Found",
-      });
+    const index = list.todos.findIndex((t) => t.id === parseInt(id));
 
-    res.status(200).json({
-      success: true,
-      message: "Todo delete successfully",
-    });
+    if (index === -1)
+      return res.status(404).json({ success: false, message: "Todo not found" });
+
+    list.todos.splice(index, 1);
+    await list.save();
+
+    res.status(200).json({ success: true, message: "Todo deleted successfully" });
   } catch (error) {
     console.log(error);
-    res.status(501).json({
-      success: false,
-      message: "Delete Error Occured",
-    });
+    res.status(500).json({ success: false, message: "Delete Error Occurred" });
   }
 };

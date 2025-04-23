@@ -1,11 +1,11 @@
-import {addTodo,fetchTodo,updateTodo,deleteTodo} from '../controllers/todo-controller.js'
-import express from 'express'
+import { addTodo, fetchTodo, updateTodo, deleteTodo } from '../controllers/todo-controller.js';
+import express from 'express';
 
-const router = express.Router()
+const router = express.Router();
 
-router.post('/add',addTodo)
-router.get('/get',fetchTodo)
-router.put(`/update/:id`,updateTodo)
-router.delete('/delete/:id',deleteTodo)
+router.post('/', addTodo); // changed from /add
+router.get('/get', fetchTodo); // keep as is
+router.put('/:id', updateTodo); // changed from /update/:index
+router.delete('/:id', deleteTodo); // changed from /delete/:index
 
-export default router
+export default router;

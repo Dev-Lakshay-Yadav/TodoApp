@@ -1,15 +1,36 @@
 import mongoose from "mongoose";
-const todoSchema = new mongoose.Schema({
-    title : {
-        type : String,
-        required : true
+
+// Define individual todo schema
+const todoSchema = new mongoose.Schema(
+  {
+    id: {
+      type: Number,
     },
-    description : {
-        type : String,
-        required : true
-    }
-}, {
-    timestamps : true
-});
-const Todo = mongoose.model('Todo', todoSchema);
-export default Todo;
+    title: {
+      type: String,
+      required: true,
+    },
+    description: {
+      type: String,
+      required: true,
+    },
+  },
+  {
+    _id: false,
+    timestamps: false,
+  }
+);
+const todoListSchema = new mongoose.Schema(
+  {
+    todos: {
+      type: [todoSchema],
+      required: true,
+    },
+  },
+  {
+    timestamps: true,
+  }
+);
+
+const TodoList = mongoose.model("TodoList", todoListSchema);
+export default TodoList;
